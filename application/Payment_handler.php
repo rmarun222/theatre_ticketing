@@ -1,0 +1,264 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Payment_handler extends CI_Controller {
+
+	/**
+	 * Index Page for this controller.
+	 *
+	 * Maps to the following URL
+	 * 		http://example.com/index.php/welcome
+	 *	- or -
+	 * 		http://example.com/index.php/welcome/index
+	 *	- or -
+	 * Since this controller is set as the default controller in
+	 * config/routes.php, it's displayed at http://example.com/
+	 *
+	 * So any other public methods not prefixed with an underscore will
+	 * map to /index.php/welcome/<method_name>
+	 * @see https://codeigniter.com/user_guide/general/urls.html
+	 */
+
+	function __construct()
+	{
+		parent::__construct();
+		$this->load->model('admin_model');
+		$this->load->library('session');
+		$this->load->helper('form');
+		$this->load->helper('url');
+		$this->load->database();
+	 // 	$this->load->library('prop');
+		// $this->load->library('form_validation');
+		date_default_timezone_set ( 'Asia/Kolkata' );
+	}
+
+	public function index()
+	{
+
+	$this->load->library('someclass');
+	$working_key = 'F67C795C01FACB64EA39FE4A33B70729';//Shared by CCAVENUES
+	$access_code = 'AVVL04IK03BH30LVHB';//Shared by CCAVENUES
+	$encResponse=$_POST["encResp"];			//This is the response sent by the CCAvenue Server
+	$rcvdString=$this->someclass->decrypt($encResponse,$working_key);		//Crypto Decryption used as per the specified working key.
+
+	$order_status="";
+	$decryptValues=explode('&', $rcvdString);
+	$dataSize=sizeof($decryptValues);
+	echo "<center>";
+
+	for($i = 0; $i < $dataSize; $i++) 
+	{
+		$information=explode('=',$decryptValues[$i]);
+		if($i==3)	$order_status=$information[1];
+	}
+
+	if($order_status==="Success")
+	{
+		echo "<br>Transaction Successfull.";
+				
+		
+	}
+	else if($order_status==="Aborted")
+	{
+		echo "<br>Thank you for shopping with us.We will keep you posted regarding the status of your order through e-mail";
+	
+	}
+	else if($order_status==="Failure")
+	{
+		echo "<br>Thank you for shopping with us.However,the transaction has been declined.";
+	}
+	else
+	{
+		echo "<br>Security Error. Illegal access detected";
+	
+	}
+
+	echo "<br><br>";
+	// echo "DETAILS";
+    $final_data['payment_mode_id'] = '';
+    $final_data['transaction_id'] = '';
+    $final_data['payment_mode'] = '';
+	// echo "<table cellspacing=4 cellpadding=4>";
+	for($i = 0; $i < $dataSize; $i++) 
+	{
+
+		$information=explode('=',$decryptValues[$i]);
+	    	// echo '<tr><td>'.$information[0].'</td><td>'.$information[1].'</td></tr>';
+
+	    	// if($information[0] == 'order_id'){
+	    	// 	$final_data['order_id'] = $information[1];
+	    	// }
+	    	if($information[0] == 'tracking_id'){
+	    		$final_data['tracking_id'] = $information[1];
+	    	}
+
+	    	if($information[0] == 'mer_amount'){
+	    		$final_data['amount_paid'] = $information[1];
+	    	}
+	    	if($information[0] == 'bank_ref_no'){
+	    		$final_data['bank_ref_no'] = $information[1];
+	    	}
+	    	if($information[0] == 'order_status'){
+	    		$final_data['payment_status'] = $information[1];
+	    	}
+	    	// if($information[0] == 'payment_mode'){
+	    	// 	$final_data['payment_mode'] = $information[1];
+	    	// }
+	    	if($information[0] == 'card_name'){
+	    		$final_data['card_name'] = $information[1];
+	    	}	    	
+
+	    	if($information[0] == 'payment_mode'){
+	    		$final_data['payment_mode'] = $information[1];
+	    	}
+
+	    	if($information[0] == 'billing_name'){
+	    		$final_data['name'] = $information[1];
+	    	}
+	    	if($information[0] == 'billing_email'){
+	    		$final_data['email'] = $information[1];
+	    	}
+	    	if($information[0] == 'delivery_name'){
+	    		$final_data['name'] = $information[1];
+
+	    	}
+	    	if($information[0] == 'delivery_address'){
+	    		$final_data['address'] = $information[1];
+	    	}
+	    	if($information[0] == 'delivery_state'){
+	    		$final_data['state'] = $information[1];
+	    	}if($information[0] == 'delivery_zip'){
+	    		$final_data['zip_code'] = $information[1];
+	    	}
+
+	    	if($information[0] == 'delivery_city'){
+	    		$final_data['city'] = $information[1];
+	    	}
+
+	    	if($information[0] == 'delivery_tel'){
+	    		$final_data['mobile_no'] = $information[1];
+	    	}
+
+	    	if($information[0] == 'merchant_param1'){
+	    		$final_data['gender'] = $information[1];
+	    	}
+	    	if($information[0] == 'merchant_param2'){
+	    		$final_data['age'] = $information[1];
+	    	}
+	    	if($information[0] == 'merchant_param3'){
+	    		$final_data['dob'] = $information[1];
+	    	}
+	    	if($information[0] == 'merchant_param4'){
+	    		$final_data['p_f_h_name'] = $information[1];
+	    	}
+	    	if($information[0] == 'merchant_param5'){
+	    		$final_data['v_const_id'] = $information[1];
+	    	}
+	    	if($information[0] == 'trans_date'){
+	    		$final_data['date_of_join'] = date('Y-m-d H:i:s', strtotime(str_replace('/', '-', $information[1]))); ;
+	    	}
+	    	if($information[0] == 'billing_notes'){
+	    		$billing_notes = $information[1];
+	    		$final_data['media_id'] = '';
+	    		$final_data['interest_id']='';
+	    		$final_data['district_id']='';
+	    		$final_data['taluk_id']='';
+	    		if(!empty($billing_notes)){
+	    			$bn = explode('/', $billing_notes);
+	    			// print_r($bn);
+	    			// die;
+					$final_data['media_id'] = $bn[2];
+					$final_data['interest_id']=$bn[3];
+					$final_data['district_id']=$bn[0];
+					$final_data['taluk_id']=$bn[1];
+	    		}
+
+	    	}
+	}
+
+	// echo "</table><br>";
+	// echo "</center>";
+	// echo '<pre>';	
+	// print_r($final_data);
+	// die;
+
+    $this->admin_model->unique_insert_query('member_details',$final_data);
+
+
+	// var_dump($encrypted_data);
+
+	$string.= 'Thank you for joining KRS Party <b>'.strtoupper($final_data['name']).' </b><br><br>';
+	// $string = 'Name :'.$final_data['name'].'<br>';
+	// $string = 'Address :'.$final_data['address'].'<br>';
+	// $string = 'Address :'.$final_data['address'].'<br>';
+	$string.= 'Payment Details<br><br>';
+	$string.= '<table border="1">';
+	$string.= '<tr><td style="text-align: center; vertical-align: middle;" >Tracking ID</td><td style="text-align: center; vertical-align: middle;" >Bank ref no</td><td style="text-align: center; vertical-align: middle;" >Date</td><td style="text-align: center; vertical-align: middle;" >Amount</td></tr>';
+	$string.= '<tr><td style="text-align: center; vertical-align: middle;" >'.$final_data['tracking_id'].'</td><td style="text-align: center; vertical-align: middle;" >'.$final_data['bank_ref_no'].'</td><td style="text-align: center; vertical-align: middle;" >'.$final_data['date_of_join'].'</td><td style="text-align: center; vertical-align: middle;" >'.$final_data['amount_paid'].'</td></tr></table>';
+
+	echo $string;
+
+
+	die;
+
+
+
+	}
+
+
+
+	public function save()
+	{
+
+		$data=$this->input->post(array(
+			'tid'=>'tid',
+'merchant_id'=>'merchant_id',
+'order_id'=>'order_id',
+'amount'=>'amount',
+'currency'=>'currency',
+'redirect_url'=>'redirect_url',
+'cancel_url'=>'cancel_url',
+'language'=>'language',
+'delivery_name'=>'delivery_name',
+'delivery_address'=>'delivery_address',
+'delivery_city'=>'delivery_city',
+'delivery_state'=>'delivery_state',
+'delivery_zip'=>'delivery_zip',
+'delivery_country'=>'delivery_country',
+'delivery_tel'=>'delivery_tel'
+
+		));
+
+//var_dump($data);
+
+
+
+	
+	$merchant_data='';
+	$working_key = 'F67C795C01FACB64EA39FE4A33B70729';//Shared by CCAVENUES
+	$access_code = 'AVVL04IK03BH30LVHB';//Shared by CCAVENUES
+	
+	foreach ($data as $key => $value){
+		$merchant_data.=$key.'='.$value.'&';
+	}
+
+	//$encrypted_data=encrypt($merchant_data,$working_key); // Method for encrypting the data.
+	$this->load->library('someclass');
+
+	$encrypted_data=$this->someclass->encrypt($merchant_data,$working_key); 
+
+	var_dump($encrypted_data);
+
+?>
+<form method="post" name="redirect" action="https://test.ccavenue.com/transaction/transaction.do?command=initiateTransaction"> 
+<?php
+echo "<input type=hidden name=encRequest value=$encrypted_data>";
+echo "<input type=hidden name=access_code value=$access_code>";
+?>
+</form></center><script language='javascript'>document.redirect.submit();</script>
+
+
+<?php
+		echo "Payment Works";
+	}
+}
